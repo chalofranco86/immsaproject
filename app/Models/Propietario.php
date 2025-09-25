@@ -10,6 +10,7 @@ class Propietario extends Model
         'nombre',
         'direccion',
         'telefono',
+        'nit',
     ];
 
     public function ordenesTrabajo()

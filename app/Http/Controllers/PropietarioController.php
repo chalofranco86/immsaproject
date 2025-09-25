@@ -33,12 +33,14 @@ class PropietarioController extends Controller
             'nombre' => 'required|string|max:255',
             'direccion' => 'required|string|max:255',
             'telefono' => 'required|string|max:20',
+            'nit' => 'nullable|string|max:20',
         ]);
 
         $propietario = Propietario::create([
             'nombre' => $request->nombre,
             'direccion' => $request->direccion,
             'telefono' => $request->telefono,
+            'nit' => $request->nit,
         ]);
 
         // Verificar si es una solicitud AJAX
@@ -49,8 +51,7 @@ class PropietarioController extends Controller
             ]);
         }
 
-        return redirect()->route('propietarios.create')
-                        ->with('success', 'Propietario registrado correctamente.');
+        return redirect()->route('ordenes_trabajo.index')->with('success', 'Propietario registrado correctamente.');
     }
 
     /**
@@ -64,24 +65,49 @@ class PropietarioController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $propietario = Propietario::findOrFail($id);
+        return view('propietarios.edit', compact('propietario'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'direccion' => 'required|string|max:255',
+            'telefono' => 'required|string|max:20',
+            'nit' => 'nullable|string|max:20',
+        ]);
+
+        $propietario = Propietario::findOrFail($id);
+        $propietario->update([
+            'nombre' => $request->nombre,
+            'direccion' => $request->direccion,
+            'telefono' => $request->telefono,
+            'nit' => $request->nit,
+        ]);
+
+        return redirect()->route('propietarios.index')->with('success', 'Propietario actualizado correctamente.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin')) {
+            return redirect()->back()->with('error', 'No tienes permiso para eliminar propietarios.');
+        }
+
+        $propietario = Propietario::findOrFail($id);
+        $propietario->delete();
+
+        return redirect()->route('propietarios.index')->with('success', 'Propietario eliminado exitosamente.');
     }
 }

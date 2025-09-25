@@ -392,12 +392,22 @@
                                         <span class="d-md-none">Ver</span>
                                     </a>
                                     @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('supervisor'))
-                                        <a href="{{ route('ordenes_trabajo.edit', $orden->id) }}" 
-                                        class="btn btn-sm btn-outline-warning action-btn" 
+                                        <a href="{{ route('ordenes_trabajo.edit', $orden->id) }}"
+                                        class="btn btn-sm btn-outline-warning action-btn"
                                         title="Editar">
                                             <i class="fas fa-edit d-none d-md-inline"></i>
                                             <span class="d-md-none">Editar</span>
                                         </a>
+                                    @endif
+                                    @if(auth()->user()->hasRole('admin'))
+                                        <form action="{{ route('ordenes_trabajo.destroy', $orden->id) }}" method="POST" style="display: inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger action-btn" title="Eliminar" onclick="return confirm('¿Estás seguro de que deseas eliminar esta orden?')">
+                                                <i class="fas fa-trash d-none d-md-inline"></i>
+                                                <span class="d-md-none">Eliminar</span>
+                                            </button>
+                                        </form>
                                     @endif
                                 </div>
                             </td>

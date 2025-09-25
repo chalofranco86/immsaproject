@@ -39,10 +39,9 @@ class EmpleadoController extends Controller
             'puesto' => $request->puesto,
         ]);
 
-        return redirect()->route('empleados.create')
-                         ->with('success', 'Empleado registrado correctamente.');
+        return redirect()->route('ordenes_trabajo.index')->with('success', 'Empleado registrado correctamente.');
     }
-
+    
     /**
      * Display the specified resource.
      */
@@ -54,24 +53,45 @@ class EmpleadoController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $empleado = Empleado::findOrFail($id);
+        return view('empleados.edit', compact('empleado'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'puesto' => 'required|string|max:255',
+        ]);
+
+        $empleado = Empleado::findOrFail($id);
+        $empleado->update([
+            'nombre' => $request->nombre,
+            'puesto' => $request->puesto,
+        ]);
+
+        return redirect()->route('empleados.index')->with('success', 'Empleado actualizado correctamente.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin')) {
+            return redirect()->back()->with('error', 'No tienes permiso para eliminar empleados.');
+        }
+
+        $empleado = Empleado::findOrFail($id);
+        $empleado->delete();
+
+        return redirect()->route('empleados.index')->with('success', 'Empleado eliminado exitosamente.');
     }
 }

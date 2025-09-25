@@ -37,8 +37,7 @@ class ServicioController extends Controller
             'tipo_servicio' => $request->tipo_servicio,
         ]);
 
-        return redirect()->route('servicios.create')
-                         ->with('success', 'Servicio registrado correctamente.');
+        return redirect()->route('ordenes_trabajo.index')->with('success', 'Servicio registrado correctamente.');
     }
 
     /**
@@ -52,24 +51,43 @@ class ServicioController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+        $servicio = Servicio::findOrFail($id);
+        return view('servicios.edit', compact('servicio'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'tipo_servicio' => 'required|string|max:255',
+        ]);
+
+        $servicio = Servicio::findOrFail($id);
+        $servicio->update([
+            'tipo_servicio' => $request->tipo_servicio,
+        ]);
+
+        return redirect()->route('servicios.index')->with('success', 'Servicio actualizado correctamente.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin')) {
+            return redirect()->back()->with('error', 'No tienes permiso para eliminar servicios.');
+        }
+
+        $servicio = Servicio::findOrFail($id);
+        $servicio->delete();
+
+        return redirect()->route('servicios.index')->with('success', 'Servicio eliminado exitosamente.');
     }
 }

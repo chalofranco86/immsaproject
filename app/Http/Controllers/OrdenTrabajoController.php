@@ -234,9 +234,26 @@ class OrdenTrabajoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin') && !$user->hasRole('supervisor')) {
+            return redirect()->back()->with('error', 'No tienes permiso para eliminar órdenes.');
+        }
+
+        $orden = OrdenTrabajo::findOrFail($id);
+
+        // Eliminar los registros relacionados en la tabla pivote
+        $orden->servicios()->detach();
+
+        // Eliminar los registros relacionados en servicio_horarios
+        ServicioHorario::where('orden_trabajo_id', $id)->delete();
+
+        // Eliminar la orden
+        $orden->delete();
+
+        return redirect()->route('ordenes_trabajo.index')->with('success', 'Orden eliminada exitosamente.');
     }
 
     public function downloadPDF($id)

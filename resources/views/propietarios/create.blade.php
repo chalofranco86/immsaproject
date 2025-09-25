@@ -9,13 +9,11 @@
 <body>
     <div class="container mt-5">
         <h2>Registrar Propietario</h2>
-
         @if(session('success'))
             <div class="alert alert-success">
                 {{ session('success') }}
             </div>
         @endif
-
         <form action="{{ route('propietarios.store') }}" method="POST">
             @csrf
             <div class="mb-3">
@@ -29,6 +27,10 @@
             <div class="mb-3">
                 <label for="telefono" class="form-label">Teléfono:</label>
                 <input type="text" class="form-control" id="telefono" name="telefono" required>
+            </div>
+            <div class="mb-3">
+                <label for="nit" class="form-label">NIT:</label>
+                <input type="text" class="form-control" id="nit" name="nit">
             </div>
             <button type="submit" class="btn btn-primary">Guardar</button>
         </form>

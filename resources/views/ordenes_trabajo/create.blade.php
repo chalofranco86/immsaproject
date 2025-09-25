@@ -32,10 +32,10 @@
     <form action="{{ route('ordenes_trabajo.store') }}" method="POST" id="orden-form">
         @csrf
         <div class="row">
-            <div class="col-md-6 mb-3">
-                <label for="numero_orden" class="form-label">Número de Orden:</label>
-                <input type="text" class="form-control" id="numero_orden" name="numero_orden" value="{{ $numeroOrden }}" readonly>
-            </div>
+        <div class="col-md-6 mb-3">
+            <label for="numero_orden" class="form-label">Número de Orden:</label>
+            <input type="text" class="form-control" id="numero_orden" name="numero_orden" value="{{ $numeroOrden }}">
+        </div>
             <div class="col-md-5 mb-3">
                 <label for="propietario_id" class="form-label">Propietario:</label>
                 <div class="d-flex">
