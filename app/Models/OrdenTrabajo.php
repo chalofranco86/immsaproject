@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class OrdenTrabajo extends Model
 {
     protected $table = 'ordenes_trabajo';
-
     protected $fillable = [
         'numero_orden',
         'propietario_id',
@@ -21,7 +20,10 @@ class OrdenTrabajo extends Model
         'anticipo',
         'saldo',
         'estado',
-        'observaciones'
+        'observaciones',
+        'serie_motor', 
+        'nit_factura',
+        'repuestos', // Nuevo campo
     ];
 
     protected $casts = [
@@ -30,23 +32,20 @@ class OrdenTrabajo extends Model
         'fecha_fin' => 'date',
         'estado' => 'string'
     ];
-
     public function propietario()
     {
         return $this->belongsTo(Propietario::class, 'propietario_id');
     }
-
     public function empleado()
     {
         return $this->belongsTo(Empleado::class, 'empleado_id');
     }
-
     public function servicios()
     {
         return $this->belongsToMany(Servicio::class, 'orden_servicio')
             ->withPivot('costo', 'responsable', 'finalizado', 'color');
     }
-    
+
     public function servicioHorarios()
     {
         return $this->hasMany(ServicioHorario::class, 'orden_trabajo_id');

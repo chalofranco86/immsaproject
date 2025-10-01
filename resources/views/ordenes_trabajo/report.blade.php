@@ -79,7 +79,6 @@
         <h1>Reporte de Órdenes de Trabajo</h1>
         <p>Fecha de generación: {{ now()->format('d/m/Y H:i') }}</p>
     </div>
-
     @if(!empty(array_filter($filters)))
     <div class="filters">
         <h4>Filtros aplicados:</h4>
@@ -102,11 +101,12 @@
         </ul>
     </div>
     @endif
-
     <table>
         <thead>
             <tr>
                 <th>Orden</th>
+                <th>Serie del Motor</th>
+                <th>NIT de Factura</th>
                 <th>Propietario</th>
                 <th>Empleado</th>
                 <th>Fecha Recibido</th>
@@ -120,6 +120,8 @@
             @forelse($ordenes as $orden)
             <tr>
                 <td>{{ $orden->numero_orden }}</td>
+                <td>{{ $orden->serie_motor ?? 'No especificada' }}</td>
+                <td>{{ $orden->nit_factura ?? 'No especificado' }}</td>
                 <td>{{ $orden->propietario->nombre }}</td>
                 <td>{{ $orden->empleado->nombre }}</td>
                 <td>{{ $orden->fecha_recibido->format('d/m/Y') }}</td>
@@ -139,7 +141,7 @@
                     @endif
                 </td>
                 <td>
-                    <span class="status-badge 
+                    <span class="status-badge
                         @if($orden->estado == 'Recibido') badge-recibido
                         @elseif($orden->estado == 'Revisión') badge-revision
                         @elseif($orden->estado == 'Autorizado') badge-autorizado
@@ -150,12 +152,11 @@
             </tr>
             @empty
             <tr>
-                <td colspan="8" style="text-align: center;">No se encontraron órdenes con los filtros aplicados</td>
+                <td colspan="9" style="text-align: center;">No se encontraron órdenes con los filtros aplicados</td>
             </tr>
             @endforelse
         </tbody>
     </table>
-
     <div class="footer">
         <p>Documento generado automáticamente el {{ now()->format('d/m/Y H:i') }}</p>
         <p>Total de órdenes: {{ count($ordenes) }}</p>

@@ -7,6 +7,7 @@ use App\Models\Propietario;
 use App\Models\Empleado;
 use App\Models\Servicio;
 use App\Models\ServicioHorario;
+use App\Models\OrdenServicio;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -77,25 +78,24 @@ class OrdenTrabajoController extends Controller
             'fecha_fin' => 'nullable|date',
             'descuento' => 'required|numeric',
             'anticipo' => 'required|numeric',
+            'serie_motor' => 'nullable|string|max:255',
+            'nit_factura' => 'nullable|string|max:20',
             'servicios' => 'required|array',
             'servicios.*.servicio_id' => 'required|exists:servicios,id',
             'servicios.*.costo' => 'required|numeric',
             'servicios.*.responsable' => 'nullable|exists:empleados,id',
             'observaciones' => 'nullable|string|max:500',
         ]);
-
-        // Calcular subtotal automáticamente
+        
         $subtotal = 0;
         foreach ($request->servicios as $servicio) {
             $subtotal += $servicio['costo'];
         }
-
-        // Calcular total y saldo
+        
         $descuento = $request->descuento;
         $total = $subtotal - $descuento;
         $anticipo = $request->anticipo;
         $saldo = $total - $anticipo;
-
         $ordenTrabajo = OrdenTrabajo::create([
             'numero_orden' => $request->numero_orden,
             'propietario_id' => $request->propietario_id,
@@ -108,20 +108,19 @@ class OrdenTrabajoController extends Controller
             'total' => $total,
             'anticipo' => $anticipo,
             'saldo' => $saldo,
-            'estado' => 'Recibido', // Estado inicial
+            'serie_motor' => $request->serie_motor,
+            'nit_factura' => $request->nit_factura, // Nuevo campo
+            'estado' => 'Recibido',
             'observaciones' => $request->observaciones,
         ]);
-
         foreach ($request->servicios as $servicio) {
             $ordenTrabajo->servicios()->attach($servicio['servicio_id'], [
                 'costo' => $servicio['costo'],
                 'responsable' => $servicio['responsable']
             ]);
         }
-
         return redirect()->route('ordenes_trabajo.index')->with('success', 'Orden creada exitosamente');
     }
-
 
     private function generarNumeroOrden()
     {
@@ -185,7 +184,9 @@ class OrdenTrabajoController extends Controller
             'fecha_fin' => 'nullable|date',
             'descuento' => 'required|numeric',
             'anticipo' => 'required|numeric',
-            'estado' => 'required|in:Recibido,Revisión,Autorizado,Entregado',
+            'serie_motor' => 'nullable|string|max:255',
+            'nit_factura' => 'nullable|string|max:20',
+            'estado' => 'required|in:Recibido,Revisión,Autorizado,No Autorizado,Entregado,Reclamo,Crédito', // Incluir "Reclamo"
             'observaciones' => 'nullable|string|max:500',
             'servicios' => 'required|array',
             'servicios.*.servicio_id' => 'required|exists:servicios,id',
@@ -198,10 +199,9 @@ class OrdenTrabajoController extends Controller
         foreach ($request->servicios as $servicio) {
             $subtotal += $servicio['costo'];
         }
-        
+
         $total = $subtotal - $request->descuento;
         $saldo = $total - $request->anticipo;
-
         $orden = OrdenTrabajo::findOrFail($id);
         $orden->update([
             'propietario_id' => $request->propietario_id,
@@ -214,6 +214,8 @@ class OrdenTrabajoController extends Controller
             'total' => $total,
             'anticipo' => $request->anticipo,
             'saldo' => $saldo,
+            'serie_motor' => $request->serie_motor,
+            'nit_factura' => $request->nit_factura, // Nuevo campo
             'estado' => $request->estado,
             'observaciones' => $request->observaciones,
         ]);
@@ -227,10 +229,10 @@ class OrdenTrabajoController extends Controller
             ];
         }
         $orden->servicios()->sync($serviciosData);
-
         return redirect()->route('ordenes_trabajo.show', $orden->id)
             ->with('success', 'Orden actualizada exitosamente');
     }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -438,5 +440,56 @@ class OrdenTrabajoController extends Controller
         $horario->delete();
 
         return redirect()->back()->with('success', 'Horario y color eliminados correctamente.');
+    }
+
+    public function serviciosPorFecha(Request $request)
+    {
+        $fecha = $request->input('fecha', date('Y-m-d'));
+        
+        \Log::info("Buscando servicios para la fecha: " . $fecha);
+        
+        // Filtrar solo órdenes con estado "Autorizado" y cargar relaciones necesarias
+        $serviciosPorFecha = OrdenServicio::with([
+            'ordenTrabajo.propietario', // Cargar propietario
+            'servicio', 
+            'empleado'
+        ])
+        ->whereHas('ordenTrabajo', function($query) use ($fecha) {
+            $query->whereDate('fecha_recibido', $fecha)
+                ->where('estado', 'Autorizado'); // Solo órdenes autorizadas
+        })
+        ->get()
+        ->groupBy(function($item) {
+            return $item->empleado ? $item->empleado->nombre : 'Sin asignar';
+        });
+
+        $empleados = Empleado::all();
+        
+        \Log::info("Grupos de servicios encontrados: " . $serviciosPorFecha->count());
+        
+        return view('ordenes_trabajo.servicios_por_fecha', compact('serviciosPorFecha', 'empleados', 'fecha'));
+    }
+
+    public function generarReporteServiciosPorFecha(Request $request)
+    {
+        $fecha = $request->input('fecha', date('Y-m-d'));
+        
+        // Aplicar mismo filtro para el PDF
+        $serviciosPorFecha = OrdenServicio::with([
+            'ordenTrabajo.propietario',
+            'servicio', 
+            'empleado'
+        ])
+        ->whereHas('ordenTrabajo', function($query) use ($fecha) {
+            $query->whereDate('fecha_recibido', $fecha)
+                ->where('estado', 'Autorizado');
+        })
+        ->get()
+        ->groupBy(function($item) {
+            return $item->empleado ? $item->empleado->nombre : 'Sin asignar';
+        });
+
+        $pdf = PDF::loadView('ordenes_trabajo.reporte_servicios_por_fecha', compact('serviciosPorFecha', 'fecha'));
+        return $pdf->download('reporte_servicios_por_fecha_' . $fecha . '.pdf');
     }
 }

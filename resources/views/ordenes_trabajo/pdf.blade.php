@@ -57,13 +57,14 @@
         <h1>Orden de Trabajo: {{ $orden->numero_orden }}</h1>
         <p>Fecha de Emisión: {{ now()->format('d/m/Y H:i') }}</p>
     </div>
-
     <div class="section">
         <h3>Información Básica</h3>
         <p><strong>Propietario:</strong> {{ $orden->propietario->nombre ?? 'No asignado' }}</p>
         <p><strong>Empleado:</strong> {{ $orden->empleado->nombre ?? 'No asignado' }}</p>
+        <p><strong>Serie del Motor:</strong> {{ $orden->serie_motor ?? 'No especificada' }}</p>
+        <p><strong>NIT de Factura:</strong> {{ $orden->nit_factura ?? 'No especificado' }}</p>
         <p><strong>Fecha Recibido:</strong> {{ $orden->fecha_recibido ? $orden->fecha_recibido->format('d/m/Y') : 'No especificada' }}</p>
-        <p><strong>Fecha Entrega:</strong> 
+        <p><strong>Fecha Entrega:</strong>
             @if($orden->fecha_entrega)
                 {{ $orden->fecha_entrega->format('d/m/Y') }}
             @else
@@ -72,11 +73,10 @@
         </p>
         <p><strong>Fecha Fin:</strong> {{ $orden->fecha_fin ? $orden->fecha_fin->format('d/m/Y') : 'No especificada' }}</p>
     </div>
-
     <div class="section">
         <h3>Estado y Observaciones</h3>
-        <p><strong>Estado:</strong> 
-            <span class="badge 
+        <p><strong>Estado:</strong>
+            <span class="badge
                 @if($orden->estado == 'Recibido') bg-primary
                 @elseif($orden->estado == 'Revisión') bg-warning
                 @elseif($orden->estado == 'Autorizado') bg-info
@@ -88,7 +88,6 @@
             {{ $orden->observaciones ?? 'Ninguna' }}
         </p>
     </div>
-
     <div class="section">
         <h3>Detalles Financieros</h3>
         <table>
@@ -114,7 +113,6 @@
             </tr>
         </table>
     </div>
-
     <div class="section">
         <h3>Servicios Realizados</h3>
         <table>
@@ -152,7 +150,6 @@
             </tfoot>
         </table>
     </div>
-
     <div class="footer">
         <p>Documento generado automáticamente el {{ now()->format('d/m/Y H:i') }}</p>
     </div>

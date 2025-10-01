@@ -16,38 +16,45 @@ Route::get('/', function () {
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
 Route::get('/dashboard', [DashboardController::class, 'index'])
      ->middleware('auth')
      ->name('dashboard');
 
-// Rutas para órdenes de trabajo
+// Rutas para órdenes de trabajo - REORGANIZADAS
 Route::prefix('ordenes-trabajo')->group(function () {
+    // Rutas específicas PRIMERO
+    Route::get('/servicios-por-fecha', [OrdenTrabajoController::class, 'serviciosPorFecha'])->name('ordenes_trabajo.servicios_por_fecha');
+    Route::get('/generar-reporte-servicios-por-fecha', [OrdenTrabajoController::class, 'generarReporteServiciosPorFecha'])->name('ordenes_trabajo.generar_reporte_servicios_por_fecha');
+    Route::get('/generate/report', [OrdenTrabajoController::class, 'generateReport'])->name('ordenes_trabajo.generateReport');
+    
+    // Rutas CRUD básicas
     Route::get('/', [OrdenTrabajoController::class, 'index'])->name('ordenes_trabajo.index');
     Route::get('/create', [OrdenTrabajoController::class, 'create'])->name('ordenes_trabajo.create');
     Route::post('/', [OrdenTrabajoController::class, 'store'])->name('ordenes_trabajo.store');
-    Route::get('/{id}', [OrdenTrabajoController::class, 'show'])->name('ordenes_trabajo.show');
+    
+    // Rutas con parámetros ÚLTIMAS
+    Route::get('/{id}/pdf', [OrdenTrabajoController::class, 'downloadPDF'])->name('ordenes_trabajo.pdf');
     Route::get('/{id}/edit', [OrdenTrabajoController::class, 'edit'])->name('ordenes_trabajo.edit');
     Route::put('/{id}', [OrdenTrabajoController::class, 'update'])->name('ordenes_trabajo.update');
-    Route::get('/{id}/pdf', [OrdenTrabajoController::class, 'downloadPDF'])->name('ordenes_trabajo.pdf');
-    Route::get('/generate/report', [OrdenTrabajoController::class, 'generateReport'])->name('ordenes_trabajo.generateReport');
-    Route::patch('/ordenes_trabajo/{orden}/servicios/{servicio}/color', [OrdenTrabajoController::class, 'asignarColorServicio'])
+    Route::get('/{id}', [OrdenTrabajoController::class, 'show'])->name('ordenes_trabajo.show');
+    
+    // Rutas específicas para servicios
+    Route::patch('/{orden}/servicios/{servicio}/color', [OrdenTrabajoController::class, 'asignarColorServicio'])
         ->name('ordenes_trabajo.asignar_color');
-    Route::post('/ordenes_trabajo/{orden}/servicios/{servicio}/horario-color', [OrdenTrabajoController::class, 'agregarHorarioColor'])
+    Route::post('/{orden}/servicios/{servicio}/horario-color', [OrdenTrabajoController::class, 'agregarHorarioColor'])
         ->name('ordenes_trabajo.agregar_horario_color');
-    Route::delete('/ordenes_trabajo/horario-color/{horarioId}', [OrdenTrabajoController::class, 'eliminarHorarioColor'])
+    Route::delete('/horario-color/{horarioId}', [OrdenTrabajoController::class, 'eliminarHorarioColor'])
         ->name('ordenes_trabajo.eliminar_horario_color');
 });
 
-// Rutas para propietarios
+// El resto de tus rutas permanecen igual...
 Route::resource('propietarios', PropietarioController::class)->only(['index', 'create', 'store', 'edit', 'update']);
 Route::delete('/propietarios/{propietario}', [PropietarioController::class, 'destroy'])->name('propietarios.destroy');
 
-// Rutas para empleados
 Route::resource('empleados', EmpleadoController::class)->only(['index', 'create', 'store', 'edit', 'update']);
 Route::delete('/empleados/{empleado}', [EmpleadoController::class, 'destroy'])->name('empleados.destroy');
 
-
-// Rutas para servicios
 Route::resource('servicios', ServicioController::class)->only(['index', 'create', 'store', 'edit', 'update']);
 Route::delete('/servicios/{servicio}', [ServicioController::class, 'destroy'])->name('servicios.destroy');
 

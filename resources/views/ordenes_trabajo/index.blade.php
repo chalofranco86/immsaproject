@@ -207,6 +207,9 @@
                     <button id="generatePdfBtn" class="btn btn-danger">
                         <i class="fas fa-file-pdf me-1"></i> Generar PDF
                     </button>
+                    <a href="{{ route('ordenes_trabajo.servicios_por_fecha') }}" class="btn btn-info me-2">
+                        <i class="fas fa-calendar-alt me-1"></i> Servicios por Fecha
+                    </a>
                 @endif
             </div>
         </div>
@@ -330,6 +333,7 @@
                                 <span>Total</span>
                                 <i class="fas fa-sort ms-1"></i>
                             </th>
+                            <th>Serie del Motor</th>
                             <th>Saldo</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -367,6 +371,7 @@
                                 @endif
                             </td>
                             <td class="fw-bold">Q{{ number_format($orden->total, 2) }}</td>
+                            <td>{{ $orden->serie_motor ?? 'N/A' }}</td>
                             <td>
                                 @if($orden->saldo > 0)
                                     <span class="badge bg-danger">Q{{ number_format($orden->saldo, 2) }}</span>
@@ -607,24 +612,71 @@
         document.querySelectorAll('.sortable').forEach(header => {
             header.addEventListener('click', function() {
                 const column = this.getAttribute('data-sort');
-                const isAsc = this.classList.contains('asc');
-                
+                const isAsc = !this.classList.contains('asc');
+
                 // Resetear todos los indicadores
                 document.querySelectorAll('.sortable i').forEach(icon => {
                     icon.className = 'fas fa-sort ms-1';
                 });
-                
+
                 // Actualizar indicador actual
                 const icon = this.querySelector('i');
-                icon.className = isAsc ? 'fas fa-sort-down ms-1' : 'fas fa-sort-up ms-1';
-                
+                icon.className = isAsc ? 'fas fa-sort-up ms-1' : 'fas fa-sort-down ms-1';
+
                 // Alternar clase
                 this.classList.toggle('asc');
-                
-                // Aquí iría la lógica para ordenar la tabla
-                console.log('Ordenando por:', column, isAsc ? 'DESC' : 'ASC');
+
+                // Ordenar la tabla
+                sortTable(column, isAsc);
             });
         });
+
+        // Función para ordenar la tabla
+        function sortTable(column, isAsc) {
+            const table = document.getElementById('ordersTable');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let aValue, bValue;
+
+                // Obtener los valores de las celdas según la columna
+                switch (column) {
+                    case 'numero_orden':
+                        aValue = a.querySelector('td:first-child div').textContent.trim();
+                        bValue = b.querySelector('td:first-child div').textContent.trim();
+                        break;
+                    case 'fecha_recibido':
+                        aValue = a.getAttribute('data-fecha-recidibo');
+                        bValue = b.getAttribute('data-fecha-recidibo');
+                        break;
+                    case 'fecha_entrega':
+                        const aDate = a.querySelector('td:nth-child(5) div').textContent.trim();
+                        const bDate = b.querySelector('td:nth-child(5) div').textContent.trim();
+                        aValue = aDate === 'Pendiente' ? '9999-12-31' : aDate; // Valor alto para "Pendiente"
+                        bValue = bDate === 'Pendiente' ? '9999-12-31' : bDate;
+                        break;
+                    case 'total':
+                        aValue = parseFloat(a.querySelector('td:nth-child(6)').textContent.replace('Q', '').replace(',', ''));
+                        bValue = parseFloat(b.querySelector('td:nth-child(6)').textContent.replace('Q', '').replace(',', ''));
+                        break;
+                    default:
+                        aValue = a.querySelector(`td[data-column="${column}"]`).textContent.trim();
+                        bValue = b.querySelector(`td[data-column="${column}"]`).textContent.trim();
+                }
+
+                // Comparar los valores
+                if (aValue < bValue) return isAsc ? -1 : 1;
+                if (aValue > bValue) return isAsc ? 1 : -1;
+                return 0;
+            });
+
+            // Limpiar la tabla
+            tbody.innerHTML = '';
+
+            // Agregar las filas ordenadas
+            rows.forEach(row => tbody.appendChild(row));
+        }
         
         // Función para generar PDF con filtros aplicados
         document.getElementById('generatePdfBtn').addEventListener('click', function() {

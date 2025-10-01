@@ -18,17 +18,15 @@
 </head>
 <body>
 @extends('layouts.app')
-
 @section('title', 'Editar Orden de Trabajo')
-
 @section('content')
 <div class="container mt-5">
     <h2>Editar Orden de Trabajo: {{ $orden->numero_orden }}</h2>
-    
+
     <form action="{{ route('ordenes_trabajo.update', $orden->id) }}" method="POST" id="orden-form">
         @csrf
         @method('PUT')
-        
+
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
                 Información Básica
@@ -51,7 +49,19 @@
                         </select>
                     </div>
                 </div>
-                
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="serie_motor" class="form-label">Serie del Motor:</label>
+                        <input type="text" class="form-control" id="serie_motor" name="serie_motor" value="{{ $orden->serie_motor }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="nit_factura" class="form-label">NIT de Factura:</label>
+                        <input type="text" class="form-control" id="nit_factura" name="nit_factura" value="{{ $orden->nit_factura ?? '' }}" placeholder="Ejemplo: 12039923K">
+                    </div>
+
+                </div>
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="fecha_recibido" class="form-label">Fecha Recibido:</label>
@@ -66,7 +76,7 @@
                         <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ $orden->fecha_fin ? $orden->fecha_fin->format('Y-m-d') : '' }}">
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="empleado_id" class="form-label">Empleado Responsable:</label>
@@ -78,22 +88,23 @@
                                 </option>
                             @endforeach
                         </select>
-                        </div>
+                    </div>
                     <div class="col-md-6 mb-3">
                         <label for="estado" class="form-label">Estado Actual:</label>
                         <select class="form-select" id="estado" name="estado" required>
                             <option value="Recibido" {{ $orden->estado == 'Recibido' ? 'selected' : '' }}>Recibido</option>
                             <option value="Revisión" {{ $orden->estado == 'Revisión' ? 'selected' : '' }}>Revisión</option>
                             <option value="Autorizado" {{ $orden->estado == 'Autorizado' ? 'selected' : '' }}>Autorizado</option>
+                            <option value="No Autorizado" {{ $orden->estado == 'No Autorizado' ? 'selected' : '' }}>No Autorizado</option>
                             <option value="Entregado" {{ $orden->estado == 'Entregado' ? 'selected' : '' }}>Entregado</option>
                             <option value="Reclamo" {{ $orden->estado == 'Reclamo' ? 'selected' : '' }}>Reclamo</option>
-
+                            <option value="Crédito" {{ $orden->estado == 'Crédito' ? 'selected' : '' }}>Crédito</option>
                         </select>
                     </div>
                 </div>
             </div>
-        </div> 
-        
+        </div>
+
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
                 Detalles Financieros
@@ -109,7 +120,7 @@
                         <input type="number" step="0.01" class="form-control" id="descuento" name="descuento" value="{{ $orden->descuento }}" required>
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="total" class="form-label">Total:</label>
@@ -120,7 +131,7 @@
                         <input type="number" step="0.01" class="form-control" id="anticipo" name="anticipo" value="{{ $orden->anticipo }}" required>
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="saldo" class="form-label">Saldo Pendiente:</label>
@@ -129,7 +140,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
                 Servicios y Observaciones
@@ -144,7 +155,7 @@
                                 <select class="form-select servicio-select" name="servicios[{{ $index }}][servicio_id]" required>
                                     <option value="">Selecciona un servicio</option>
                                     @foreach($servicios as $serv)
-                                        <option value="{{ $serv->id }}" 
+                                        <option value="{{ $serv->id }}"
                                             data-costo="{{ $serv->costo }}"
                                             {{ $serv->id == $servicio->id ? 'selected' : '' }}>
                                             {{ $serv->tipo_servicio }} (Q{{ number_format($serv->costo, 2) }})
@@ -153,8 +164,8 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" step="0.01" class="form-control servicio-costo" 
-                                    name="servicios[{{ $index }}][costo]" 
+                                <input type="number" step="0.01" class="form-control servicio-costo"
+                                    name="servicios[{{ $index }}][costo]"
                                     value="{{ $servicio->pivot->costo }}"
                                     placeholder="Costo" required>
                             </div>
@@ -176,7 +187,7 @@
                     </div>
                     <button type="button" class="btn btn-secondary mt-2" id="add-servicio">Agregar Servicio</button>
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="observaciones" class="form-label fw-bold">Observaciones:</label>
                     <textarea class="form-control" id="observaciones" name="observaciones" rows="4">{{ $orden->observaciones }}</textarea>
@@ -184,7 +195,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="d-flex justify-content-between mt-4">
             <a href="{{ route('ordenes_trabajo.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-1"></i> Volver al Listado
@@ -196,38 +207,37 @@
     </form>
 </div>
 @endsection
-
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // Función para calcular todos los totales
     function calcularTotales() {
         let subtotal = 0;
-        
+
         // Sumar todos los costos de servicios
         document.querySelectorAll('.servicio-costo').forEach(input => {
             const costo = parseFloat(input.value) || 0;
             subtotal += costo;
         });
-        
+
         // Obtener valores de descuento y anticipo
         const descuento = parseFloat(document.getElementById('descuento').value) || 0;
         const anticipo = parseFloat(document.getElementById('anticipo').value) || 0;
-        
+
         // Calcular total y saldo
         const total = subtotal - descuento;
         const saldo = total - anticipo;
-        
+
         // Actualizar campos
         document.getElementById('subtotal').value = subtotal.toFixed(2);
         document.getElementById('total').value = total.toFixed(2);
         document.getElementById('saldo').value = saldo.toFixed(2);
     }
-    
+
     // Actualizar costos cuando cambia un servicio
     function actualizarCosto(selectElement) {
         const costoInput = selectElement.closest('.servicio-row').querySelector('.servicio-costo');
-        
+
         // Solo actualizar si el campo de costo está vacío (nuevos servicios)
         if (!costoInput.value || parseFloat(costoInput.value) === 0) {
             const costo = selectElement.options[selectElement.selectedIndex].dataset.costo || 0;
@@ -235,16 +245,16 @@
             calcularTotales();
         }
     }
-    
+
     // Inicializar eventos
     document.addEventListener('DOMContentLoaded', function() {
         // Calcular inicialmente
         calcularTotales();
-        
+
         // Eventos para campos que afectan los cálculos
         document.getElementById('descuento').addEventListener('input', calcularTotales);
         document.getElementById('anticipo').addEventListener('input', calcularTotales);
-        
+
         // Eventos delegados para servicios dinámicos
         document.getElementById('servicios-container').addEventListener('input', function(e) {
             if (e.target.classList.contains('servicio-costo')) {
@@ -254,7 +264,7 @@
                 actualizarCosto(e.target);
             }
         });
-        
+
         // Eliminar servicio
         document.querySelectorAll('.remove-servicio').forEach(button => {
             button.addEventListener('click', function() {
@@ -263,7 +273,7 @@
             });
         });
     });
-    
+
     // Agregar nuevo servicio
     document.getElementById('add-servicio').addEventListener('click', function() {
         const container = document.getElementById('servicios-container');
@@ -297,13 +307,13 @@
             </div>
         `;
         container.appendChild(newRow);
-        
+
         // Evento para actualizar costo al seleccionar
         const select = newRow.querySelector('.servicio-select');
         select.addEventListener('change', function() {
             actualizarCosto(this);
         });
-        
+
         // Evento para eliminar
         newRow.querySelector('.remove-servicio').addEventListener('click', function() {
             newRow.remove();

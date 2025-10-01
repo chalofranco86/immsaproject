@@ -37,6 +37,8 @@
             <div class="card-body">
                 <h5 class="card-title">Propietario: {{ $orden->propietario->nombre ?? 'No asignado' }}</h5>
                 <p class="card-text">Empleado: {{ $orden->empleado->nombre ?? 'No asignado' }}</p>
+                <p class="card-text">Serie del Motor: {{ $orden->serie_motor ?? 'No especificada' }}</p>
+                <p class="card-text">NIT de Factura: {{ $orden->nit_factura ?? 'No especificado' }}</p> <!-- Nuevo campo -->
                 <p class="card-text">Fecha Recibido: {{ $orden->fecha_recibido ? $orden->fecha_recibido->format('d/m/Y') : 'No especificada' }}</p>
                 <p class="card-text">Fecha Entrega:
                     @if($orden->fecha_entrega)
@@ -122,11 +124,11 @@
                                         @csrf
                                         <select name="color" class="form-select form-select-sm" style="width: auto;" required>
                                             <option value="">Seleccionar color</option>
-                                            <option value="verde">Verde (9:30 am - 11:29 am)</option>
-                                            <option value="amarillo">Amarillo (11:30 am - 14:29 hrs)</option>
-                                            <option value="azul">Azul (14:30 hrs - 16:29 hrs)</option>
-                                            <option value="rosado">Rosado (16:30 hrs - 17:59 hrs)</option>
-                                            <option value="morado">Morado (18:00 hrs - 20:00 hrs)</option>
+                                            <option value="verde">Verde (8:14 am - 9:30 am)</option>
+                                            <option value="amarillo">Amarillo (9:31 am - 11:30 am)</option>
+                                            <option value="azul">Azul (11:31 am - 14:30 pm)</option>
+                                            <option value="rosado">Rosado (14:31 hrs - 16:30 hrs)</option>
+                                            <option value="morado">Morado (16:31 hrs - 21:00 hrs)</option>
                                         </select>
                                         <input type="time" name="hora_inicio" class="form-control form-control-sm" style="width: auto;">
                                         <input type="time" name="hora_fin" class="form-control form-control-sm" style="width: auto;">
@@ -146,7 +148,7 @@
                                     @endif
                                 @else
                                     <span class="badge bg-danger">No</span>
-                                    @if(auth()->user()->empleado_id == $servicio->pivot->responsable || auth()->user()->hasRole('admin') || auth()->user()->hasRole('supervisor'))
+                                    @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('supervisor'))
                                         <form action="{{ route('ordenes_trabajo.marcar_finalizado', ['orden' => $orden->id, 'servicio' => $servicio->id]) }}" method="POST">
                                             @csrf
                                             @method('PATCH')

@@ -53,6 +53,17 @@
         </div>
         <div class="row">
             <div class="col-md-6 mb-3">
+                <label for="serie_motor" class="form-label">Serie del Motor:</label>
+                <input type="text" class="form-control" id="serie_motor" name="serie_motor">
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="nit_factura" class="form-label">NIT de Factura:</label>
+                    <input type="text" class="form-control" id="nit_factura" name="nit_factura" placeholder="Ejemplo: 12039923K">
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
                 <label for="fecha_recibido" class="form-label">Fecha Recibido:</label>
                 <input type="date" class="form-control" id="fecha_recibido" name="fecha_recibido" required>
             </div>
